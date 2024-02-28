@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Class Vision</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Bootstrap icons-->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="/">Class Vision</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation"><span
+                    class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">About</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+        <!-- Product section-->
+        <section class="py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="row gx-4 gx-lg-5 align-items-center">
+                    <div class="col-md-6">
+                        <!-- <img class="card-img-top mb-5 mb-md-0" src="https://dummyimage.com/600x700/dee2e6/6c757d.jpg" alt="..." /> -->
+                        <video id="videoElement" class="card-img-top mb-5 mb-md-0" autoplay></video>
+                            <img class="card-img-top mb-5 mb-md-0" src="{{ url_for('video') }}" alt="..." />
+                    </div>
+                    <div class="col-md-6">
+                        <h1 class="display-5 fw-bolder">Face Detection</h1>
+                        <div class="fs-5 mb-5">
+                            <span>Students</span>
+                        </div>
+                        <div class="d-flex">
+                            <button id="startButton" class="btn btn-outline-dark flex-shrink-0" type="button">
+                                <i class="bi-cart-fill me-1"></i>
+                                Open Camera
+                            </button>
+                            
+                            <button id="captureButton"  class="btn btn-outline-dark flex-shrink-0" type="button">
+                                <i class="bi-cart-fill me-1"></i>
+                                Detect Faces
+                            </button>
+                            <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+                                <input type="file" name="image" id="imageInput" style="display: none;">
+                                <input type="submit" value="Upload" style="display: none;">
+                            </form>
+                        </div>
+                        <p class="lead">Online face detection utilizes computer vision algorithms to identify and locate faces in real-time, enabling applications to enhance user experiences.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <script>
+            const startButton = document.getElementById('startButton');
+            const captureButton = document.getElementById('captureButton');
+            const videoElement = document.getElementById('videoElement');
+            const imageInput = document.getElementById('imageInput');
+            const uploadForm = document.getElementById('uploadForm');
+    
+            // Start webcam
+            startButton.addEventListener('click', async () => {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+            });
+    
+            // Capture image
+            captureButton.addEventListener('click', () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                canvas.getContext('2d').drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'captured_image.jpg');
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    // Send image data to Flask backend
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Image uploaded successfully!');
+                        } else {
+                            console.error('Failed to upload image.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error uploading image:', error);
+                    });
+                }, 'image/jpeg');
+            });
+        </script>
+        <!-- Footer-->
+        <footer class="py-5 bg-dark">
+            <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Class Vision 2024</p></div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="{{ url_for('static', filename='js/scripts.js')}}"></script>
+    </body>
+</html>
